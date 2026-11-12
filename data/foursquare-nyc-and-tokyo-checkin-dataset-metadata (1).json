@@ -1,0 +1,408 @@
+{
+    "@context": {
+        "@language": "en",
+        "@vocab": "https://schema.org/",
+        "citeAs": "cr:citeAs",
+        "column": "cr:column",
+        "conformsTo": "dct:conformsTo",
+        "cr": "http://mlcommons.org/croissant/",
+        "data": {
+            "@id": "cr:data",
+            "@type": "@json"
+        },
+        "dataBiases": "cr:dataBiases",
+        "dataCollection": "cr:dataCollection",
+        "dataType": {
+            "@id": "cr:dataType",
+            "@type": "@vocab"
+        },
+        "dct": "http://purl.org/dc/terms/",
+        "extract": "cr:extract",
+        "field": "cr:field",
+        "fileProperty": "cr:fileProperty",
+        "fileObject": "cr:fileObject",
+        "fileSet": "cr:fileSet",
+        "format": "cr:format",
+        "includes": "cr:includes",
+        "isEnumeration": "cr:isEnumeration",
+        "jsonPath": "cr:jsonPath",
+        "key": "cr:key",
+        "md5": "cr:md5",
+        "parentField": "cr:parentField",
+        "path": "cr:path",
+        "personalSensitiveInformation": "cr:personalSensitiveInformation",
+        "recordSet": "cr:recordSet",
+        "references": "cr:references",
+        "regex": "cr:regex",
+        "repeated": "cr:repeated",
+        "replace": "cr:replace",
+        "sc": "https://schema.org/",
+        "separator": "cr:separator",
+        "source": "cr:source",
+        "subField": "cr:subField",
+        "transform": "cr:transform",
+        "wd": "https://www.wikidata.org/wiki/"
+    },
+    "alternateName": "Check-ins in NYC and Tokyo collected for about 10 months",
+    "conformsTo": "http://mlcommons.org/croissant/1.0",
+    "license": {
+        "@type": "sc:CreativeWork",
+        "name": "Unknown"
+    },
+    "distribution": [
+        {
+            "contentUrl": "https://www.kaggle.com/api/v1/datasets/download/chetanism/foursquare-nyc-and-tokyo-checkin-dataset?datasetVersionNumber=2",
+            "contentSize": "23.021 MB",
+            "md5": "436XrVamUEgDBe9wwPXE4A==",
+            "encodingFormat": "application/zip",
+            "@id": "archive.zip",
+            "@type": "cr:FileObject",
+            "name": "archive.zip",
+            "description": "Archive containing all the contents of the FourSquare - NYC and Tokyo Check-ins dataset"
+        },
+        {
+            "contentUrl": "dataset_TSMC2014_NYC.csv",
+            "containedIn": {
+                "@id": "archive.zip"
+            },
+            "encodingFormat": "text/csv",
+            "@id": "dataset_TSMC2014_NYC.csv_fileobject",
+            "@type": "cr:FileObject",
+            "name": "dataset_TSMC2014_NYC.csv",
+            "description": "Checkins for New York City"
+        },
+        {
+            "contentUrl": "dataset_TSMC2014_TKY.csv",
+            "containedIn": {
+                "@id": "archive.zip"
+            },
+            "encodingFormat": "text/csv",
+            "@id": "dataset_TSMC2014_TKY.csv_fileobject",
+            "@type": "cr:FileObject",
+            "name": "dataset_TSMC2014_TKY.csv",
+            "description": "Checkins for Tokyo"
+        }
+    ],
+    "recordSet": [
+        {
+            "field": [
+                {
+                    "dataType": [
+                        "sc:Text"
+                    ],
+                    "source": {
+                        "fileObject": {
+                            "@id": "dataset_TSMC2014_NYC.csv_fileobject"
+                        },
+                        "extract": {
+                            "column": "userId"
+                        }
+                    },
+                    "@id": "dataset_TSMC2014_NYC.csv/userId",
+                    "@type": "cr:Field",
+                    "name": "userId",
+                    "description": "User ID (anonymized)"
+                },
+                {
+                    "dataType": [
+                        "sc:Text"
+                    ],
+                    "source": {
+                        "fileObject": {
+                            "@id": "dataset_TSMC2014_NYC.csv_fileobject"
+                        },
+                        "extract": {
+                            "column": "venueId"
+                        }
+                    },
+                    "@id": "dataset_TSMC2014_NYC.csv/venueId",
+                    "@type": "cr:Field",
+                    "name": "venueId",
+                    "description": "Venue ID (Foursquare)"
+                },
+                {
+                    "dataType": [
+                        "sc:Text"
+                    ],
+                    "source": {
+                        "fileObject": {
+                            "@id": "dataset_TSMC2014_NYC.csv_fileobject"
+                        },
+                        "extract": {
+                            "column": "venueCategoryId"
+                        }
+                    },
+                    "@id": "dataset_TSMC2014_NYC.csv/venueCategoryId",
+                    "@type": "cr:Field",
+                    "name": "venueCategoryId",
+                    "description": "Venue category ID (Foursquare)"
+                },
+                {
+                    "dataType": [
+                        "sc:Text"
+                    ],
+                    "source": {
+                        "fileObject": {
+                            "@id": "dataset_TSMC2014_NYC.csv_fileobject"
+                        },
+                        "extract": {
+                            "column": "venueCategory"
+                        }
+                    },
+                    "@id": "dataset_TSMC2014_NYC.csv/venueCategory",
+                    "@type": "cr:Field",
+                    "name": "venueCategory",
+                    "description": "Venue category name (Foursquare)"
+                },
+                {
+                    "dataType": [
+                        "sc:Text"
+                    ],
+                    "source": {
+                        "fileObject": {
+                            "@id": "dataset_TSMC2014_NYC.csv_fileobject"
+                        },
+                        "extract": {
+                            "column": "latitude"
+                        }
+                    },
+                    "@id": "dataset_TSMC2014_NYC.csv/latitude",
+                    "@type": "cr:Field",
+                    "name": "latitude",
+                    "description": "Latitude"
+                },
+                {
+                    "dataType": [
+                        "sc:Text"
+                    ],
+                    "source": {
+                        "fileObject": {
+                            "@id": "dataset_TSMC2014_NYC.csv_fileobject"
+                        },
+                        "extract": {
+                            "column": "longitude"
+                        }
+                    },
+                    "@id": "dataset_TSMC2014_NYC.csv/longitude",
+                    "@type": "cr:Field",
+                    "name": "longitude",
+                    "description": "Longitude"
+                },
+                {
+                    "dataType": [
+                        "sc:Integer"
+                    ],
+                    "source": {
+                        "fileObject": {
+                            "@id": "dataset_TSMC2014_NYC.csv_fileobject"
+                        },
+                        "extract": {
+                            "column": "timezoneOffset"
+                        }
+                    },
+                    "@id": "dataset_TSMC2014_NYC.csv/timezoneOffset",
+                    "@type": "cr:Field",
+                    "name": "timezoneOffset",
+                    "description": "Timezone offset in minutes (The offset in minutes between when this check-in occurred and the same time in UTC)"
+                },
+                {
+                    "dataType": [
+                        "sc:Text"
+                    ],
+                    "source": {
+                        "fileObject": {
+                            "@id": "dataset_TSMC2014_NYC.csv_fileobject"
+                        },
+                        "extract": {
+                            "column": "utcTimestamp"
+                        }
+                    },
+                    "@id": "dataset_TSMC2014_NYC.csv/utcTimestamp",
+                    "@type": "cr:Field",
+                    "name": "utcTimestamp",
+                    "description": "UTC time"
+                }
+            ],
+            "@id": "dataset_TSMC2014_NYC.csv",
+            "@type": "cr:RecordSet",
+            "name": "dataset_TSMC2014_NYC.csv",
+            "description": "Checkins for New York City"
+        },
+        {
+            "field": [
+                {
+                    "dataType": [
+                        "sc:Text"
+                    ],
+                    "source": {
+                        "fileObject": {
+                            "@id": "dataset_TSMC2014_TKY.csv_fileobject"
+                        },
+                        "extract": {
+                            "column": "userId"
+                        }
+                    },
+                    "@id": "dataset_TSMC2014_TKY.csv/userId",
+                    "@type": "cr:Field",
+                    "name": "userId",
+                    "description": "User ID (anonymized)"
+                },
+                {
+                    "dataType": [
+                        "sc:Text"
+                    ],
+                    "source": {
+                        "fileObject": {
+                            "@id": "dataset_TSMC2014_TKY.csv_fileobject"
+                        },
+                        "extract": {
+                            "column": "venueId"
+                        }
+                    },
+                    "@id": "dataset_TSMC2014_TKY.csv/venueId",
+                    "@type": "cr:Field",
+                    "name": "venueId",
+                    "description": "Venue ID (Foursquare)"
+                },
+                {
+                    "dataType": [
+                        "sc:Text"
+                    ],
+                    "source": {
+                        "fileObject": {
+                            "@id": "dataset_TSMC2014_TKY.csv_fileobject"
+                        },
+                        "extract": {
+                            "column": "venueCategoryId"
+                        }
+                    },
+                    "@id": "dataset_TSMC2014_TKY.csv/venueCategoryId",
+                    "@type": "cr:Field",
+                    "name": "venueCategoryId",
+                    "description": "Venue category ID (Foursquare)"
+                },
+                {
+                    "dataType": [
+                        "sc:Text"
+                    ],
+                    "source": {
+                        "fileObject": {
+                            "@id": "dataset_TSMC2014_TKY.csv_fileobject"
+                        },
+                        "extract": {
+                            "column": "venueCategory"
+                        }
+                    },
+                    "@id": "dataset_TSMC2014_TKY.csv/venueCategory",
+                    "@type": "cr:Field",
+                    "name": "venueCategory",
+                    "description": "Venue category name (Foursquare)"
+                },
+                {
+                    "dataType": [
+                        "sc:Text"
+                    ],
+                    "source": {
+                        "fileObject": {
+                            "@id": "dataset_TSMC2014_TKY.csv_fileobject"
+                        },
+                        "extract": {
+                            "column": "latitude"
+                        }
+                    },
+                    "@id": "dataset_TSMC2014_TKY.csv/latitude",
+                    "@type": "cr:Field",
+                    "name": "latitude",
+                    "description": "Latitude"
+                },
+                {
+                    "dataType": [
+                        "sc:Text"
+                    ],
+                    "source": {
+                        "fileObject": {
+                            "@id": "dataset_TSMC2014_TKY.csv_fileobject"
+                        },
+                        "extract": {
+                            "column": "longitude"
+                        }
+                    },
+                    "@id": "dataset_TSMC2014_TKY.csv/longitude",
+                    "@type": "cr:Field",
+                    "name": "longitude",
+                    "description": "Longitude"
+                },
+                {
+                    "dataType": [
+                        "sc:Integer"
+                    ],
+                    "source": {
+                        "fileObject": {
+                            "@id": "dataset_TSMC2014_TKY.csv_fileobject"
+                        },
+                        "extract": {
+                            "column": "timezoneOffset"
+                        }
+                    },
+                    "@id": "dataset_TSMC2014_TKY.csv/timezoneOffset",
+                    "@type": "cr:Field",
+                    "name": "timezoneOffset",
+                    "description": "Timezone offset in minutes (The offset in minutes between when this check-in occurred and the same time in UTC)"
+                },
+                {
+                    "dataType": [
+                        "sc:Text"
+                    ],
+                    "source": {
+                        "fileObject": {
+                            "@id": "dataset_TSMC2014_TKY.csv_fileobject"
+                        },
+                        "extract": {
+                            "column": "utcTimestamp"
+                        }
+                    },
+                    "@id": "dataset_TSMC2014_TKY.csv/utcTimestamp",
+                    "@type": "cr:Field",
+                    "name": "utcTimestamp",
+                    "description": "UTC time"
+                }
+            ],
+            "@id": "dataset_TSMC2014_TKY.csv",
+            "@type": "cr:RecordSet",
+            "name": "dataset_TSMC2014_TKY.csv",
+            "description": "Checkins for Tokyo"
+        }
+    ],
+    "version": 2,
+    "keywords": [
+        "subject \u003E earth and nature \u003E environment \u003E cities and urban areas",
+        "subject \u003E science and technology \u003E internet",
+        "subject \u003E earth and nature \u003E earth science \u003E geography",
+        "subject \u003E science and technology \u003E internet \u003E online communities \u003E social networks"
+    ],
+    "isAccessibleForFree": true,
+    "includedInDataCatalog": {
+        "@type": "sc:DataCatalog",
+        "name": "Kaggle",
+        "url": "https://www.kaggle.com"
+    },
+    "creator": {
+        "@type": "sc:Person",
+        "name": "chetan",
+        "url": "/chetanism",
+        "image": "https://storage.googleapis.com/kaggle-avatars/thumbnails/1006767-gp.jpg"
+    },
+    "publisher": {
+        "@type": "sc:Organization",
+        "name": "Kaggle",
+        "url": "https://www.kaggle.com/organizations/kaggle",
+        "image": "https://storage.googleapis.com/kaggle-organizations/4/thumbnail.png"
+    },
+    "thumbnailUrl": "https://storage.googleapis.com/kaggle-datasets-images/1180/2118/569cad4324e2ab036f0cb3109994eacf/dataset-card.jpg",
+    "dateModified": "2017-04-27T11:12:36.347",
+    "datePublished": "2017-04-27T11:01:38.947",
+    "@type": "sc:Dataset",
+    "name": "FourSquare - NYC and Tokyo Check-ins",
+    "url": "https://www.kaggle.com/datasets/chetanism/foursquare-nyc-and-tokyo-checkin-dataset/versions/2",
+    "description": "# Context \n\nThis dataset contains check-ins in NYC and Tokyo collected for about 10 month (from 12 April 2012 to 16 February 2013). It contains 227,428 check-ins in New York city and 573,703 check-ins in Tokyo. Each check-in is associated with its time stamp, its GPS coordinates and its semantic meaning (represented by fine-grained venue-categories). This dataset is originally used for studying the spatial-temporal regularity of user activity in LBSNs.\n\n\n# Content\n\nThis dataset includes long-term (about 10 months) check-in data in New York city and Tokyo collected from Foursquare from 12 April 2012 to 16 February 2013.\nIt contains two files in tsv format. Each file contains 8 columns, which are:\n\n1. User ID (anonymized)\n2. Venue ID (Foursquare)\n3. Venue category ID (Foursquare)\n4. Venue category name (Fousquare)\n5. Latitude\n6. Longitude\n7. Timezone offset in minutes (The offset in minutes between when this check-in occurred and the same time in UTC)\n8. UTC time\n\nThe file dataset_TSMC2014_NYC.txt contains 227428 check-ins in New York city.\nThe file dataset_TSMC2014_TKY.txt contains 537703 check-ins in Tokyo.\n\n\n# Acknowledgements\nThis dataset is acquired from [here][1]\n\nFollowing is the citation of the dataset author\u0027s paper:\n\nDingqi Yang, Daqing Zhang, Vincent W. Zheng, Zhiyong Yu. Modeling User Activity Preference by Leveraging User Spatial Temporal Characteristics in LBSNs. IEEE Trans. on Systems, Man, and Cybernetics: Systems, (TSMC), 45(1), 129-142, 2015. [PDF][2]\n\n# Inspiration\nOne of the questions that I am trying to answer is if there is a pattern in users\u0027 checkin behaviour. For example, if it\u0027s a Friday evening, what all places they might be interested to visit.\n\n\n  [1]: https://sites.google.com/site/yangdingqi/home/foursquare-dataset\n  [2]: http://www-public.it-sudparis.eu/~zhang_da/pub/TSMC_YANG_2014.pdf"
+}
