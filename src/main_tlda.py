@@ -14,18 +14,35 @@ if str(BASE_PATH) not in sys.path:
     sys.path.insert(0, str(BASE_PATH))
 
 import src.TLDA as TLDA
+import argparse
 import json
+import random
+
+import numpy as np
+
+# Example for NYC (writes tlda_model_file next to the data, where process_fun looks for it):
+#   python src/main_tlda.py --data data/processed/nyc/data_nyc_val --out data/processed/nyc/tlda_model_file
+parser = argparse.ArgumentParser(description="Train TLDA on column 1 (training items) of a data file")
+parser.add_argument("--data", default=str(SRC_PATH / "sample_data"))
+parser.add_argument("--out", default=str(SRC_PATH / "tlda_model_file"))
+parser.add_argument("--topics", type=int, default=10)       # paper: 10 (tuned among 3, 5, 10, 20)
+parser.add_argument("--iterations", type=int, default=10)   # Gibbs sweeps; set after a convergence run
+parser.add_argument("--seed", type=int, default=2026)
+cli = parser.parse_args()
+random.seed(cli.seed)      # TLDA samples with Python's random module
+np.random.seed(cli.seed)
 
 doc_num = 0
 poi_num = 0
 time_num = 0
-topic_k = 7
+
+topic_k = cli.topics
 
 input_data = []
 doc_index = []
 doc_len = []
 
-f_i = open(SRC_PATH / "sample_data")
+f_i = open(cli.data)
 readlines = f_i.readlines()
 f_i.close()
 
@@ -57,7 +74,7 @@ print("doc_num:",doc_num)
 print("poi_num:",poi_num)
 print("time_num:",time_num)
 print(topic_k)
-
-tlda = TLDA.tlda(input_data,doc_index,doc_len,doc_num,poi_num,time_num,topic_k,10)
+# last arg is Gibs iterations
+tlda = TLDA.tlda(input_data,doc_index,doc_len,doc_num,poi_num,time_num,topic_k,cli.iterations)
 tlda.train_model()
-tlda.save_model_data(SRC_PATH / "tlda_model_file")
+tlda.save_model_data(cli.out)

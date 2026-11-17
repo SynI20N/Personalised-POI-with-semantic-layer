@@ -53,7 +53,7 @@ class TEMN(basemodel):
             item_input = [x[1] for x in batch]
             uindist = [x[2] for x in batch]
             all_items_data = [process_all_items(x[3]) for x in batch]
-            ll = [len(x[3]) for x in batch]
+            ll = [min(len(x[3]), self.args.max_p_num) for x in batch]
             item_input_neg = [x[4] for x in batch]
             topic_input = [x[5] for x in batch]
             uindistneg = [x[6] for x in batch]
@@ -73,7 +73,7 @@ class TEMN(basemodel):
             item_input = [x[1] for x in batch]
             uindist = [x[2] for x in batch]
             all_items_data = [process_all_items(x[3]) for x in batch]
-            ll = [len(x[3]) for x in batch]
+            ll = [min(len(x[3]), self.args.max_p_num) for x in batch]
             feed_dict = {
                 self.user_input: user_input,
                 self.item_input: item_input,
@@ -175,7 +175,6 @@ class TEMN(basemodel):
                                                       selected_memory=self.selected_memory)
                 final_layer_neg = self._composition_layer(self.user_emb, self.item_emb_neg,
                                                           selected_memory=self.selected_memory)
-                self.predict_op = tf.squeeze(final_layer)
                 self.mem_cost = tf.reduce_sum(tf.nn.relu((tf.squeeze(final_layer_neg - final_layer) + self.lamb_m)))
 
                 self.dis_W_emb = tf.squeeze(tf.nn.embedding_lookup(self.dis_W, self.user_input))
@@ -186,6 +185,13 @@ class TEMN(basemodel):
                 self.Wis_neg = (
                             self.dis_W_emb * self.DIST_neg + self.dis_b_emb + self.dist_W_item_emb_neg * self.DIST_neg)
                 self.dist_cost = tf.reduce_sum(tf.nn.relu((self.lamb_d - self.Wis + self.Wis_neg)))
+
+                # Final score (paper Eq. 19): s = s_mem + eta * s_geo
+                # self.Wis is the geographic score (rho_u + rho_v) * d + b_u of the scored POI.
+                # b_u is the same for every candidate of a user and cancels in the pairwise
+                # loss: Wis - Wis_neg = (rho_u+rho_v)*d_v - (rho_u+rho_j)*d_j, so it never
+                # changes a ranking.
+                self.predict_op = tf.squeeze(final_layer, axis=1) + self.args.eta * self.Wis
 
                 self.cost = self.mem_cost + self.topic_cost * self.ratio1 + self.dist_cost * self.ratio2
                 if self.args.l2_reg > 0:

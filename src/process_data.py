@@ -19,4 +19,5 @@ for line in readlines:
     cur_data = json.loads(new_line[1])
     test_data = json.loads(new_line[2])
     neg_datas = json.loads(new_line[3])
-    print(neg_datas)
+    print(line)
+    break

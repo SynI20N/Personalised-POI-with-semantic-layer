@@ -13,7 +13,7 @@ BASE_PATH = Path(__file__).resolve().parent.parent
 SRC_PATH = BASE_PATH / "src"
 
 doc_num = 5000
-word_num = 10
+word_num = 200  # must exceed what users visit (~0-40), otherwise no valid negatives exist
 time_num = 7
 train_k = 100
 test_k = 3

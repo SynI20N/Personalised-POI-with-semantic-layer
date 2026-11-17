@@ -67,6 +67,7 @@ class tlda:
             cur_time_len = sum(self.time_topic[i])
             self.vt[i] = (self.time_topic[i] + self.gamma) / (cur_time_len + self.topic_k * self.gamma)
 
+# user i, poi j, time slot l, pre_topic currently assigned topic
     def Sample_topic(self, i, j, l, cur_len, pre_topic):
         self.document_topic[i, pre_topic] = self.document_topic[i, pre_topic] - 1
         self.time_topic[l, pre_topic] = self.time_topic[l, pre_topic] - 1
@@ -124,6 +125,7 @@ class tlda:
                     cur_pre_topic = self.pre_topic_select[cur_u][j]
                     cur_topic = self.Sample_topic(cur_u, cur_p, cur_t, cur_doc_len, cur_pre_topic)
                     self.pre_topic_select[cur_u, j] = cur_topic
+                    
             self._gen_result();
 
     def save_model_data(self, input_file):
