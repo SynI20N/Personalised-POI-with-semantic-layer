@@ -53,18 +53,8 @@ def embed_texts_weighted(paths, model_name=DEFAULT_MODEL, normalize=True, leaf_b
     ("Dining and Drinking", "Bar", "Sake Bar"). Every level is encoded and the levels are
     combined with a weighted mean (Eq. 5) instead of an equal-weight average.
 
-    Weighting: w_l = l for ancestors (linear in depth), w_L = leaf_boost * L for the leaf.
-      - The leaf names the kind of place most precisely, so it should dominate; ancestors let a
-        POI with a rare/unseen leaf borrow from its relatives (e.g. "Bar").
-      - Linear: the immediate parent counts more than the broad top-level category.
-      - Plain linear gives the leaf a share of 2/(L+1), which shrinks for deep paths
-        (L=2: .67, L=3: .50, L=4: .40). leaf_boost (r) raises it for every length: share is
-        2r/(L-1+2r) (r=2 -> .80, .67, .57). It still falls with L, which we want: in a short
-        path the only ancestor is a broad top-level category; in a deep one the parent is
-        informative. r=1 is plain linear (default); tune r in {1,2,3} on cold validation if time.
-      - A fixed 50/50 leaf/ancestor split was rejected: for 2-level paths it equals the
-        unweighted average.
-      - Use the same weights in the one-hot variant so RQ3 compares only the source of the vectors.
+    Leaf + parent only (D17): 0.7·leaf + 0.3·parent, L2-normalised; a root embeds its own name. 
+    Embedding the full path would feed the taxonomy into the vector (see STATUS §6.4)."
     """
     from sentence_transformers import SentenceTransformer  # heavy import, only when needed
 
@@ -75,13 +65,17 @@ def embed_texts_weighted(paths, model_name=DEFAULT_MODEL, normalize=True, leaf_b
     names = sorted({name for p in paths for name in p})
     vecs = model.encode(names, normalize_embeddings=normalize, show_progress_bar=True)
     index = {name: i for i, name in enumerate(names)}
+    
 
     out = []
     for p in paths:
-        w = np.arange(1, len(p) + 1, dtype=np.float64)  # linear weights 1..L
-        w[-1] *= leaf_boost                               # boost only the leaf
-        w /= w.sum()                                      # weighted mean ensure sum to one
-        category_vector = w @ vecs[[index[name] for name in p]]
+        # fixed 0.7 - 0.3 weights 
+        # w = np.arange(1, len(p) + 1, dtype=np.float64)  # linear weights 1..L
+        # w[-1] *= leaf_boost                               # boost only the leaf
+        # w /= w.sum()                                      # weighted mean ensure sum to one
+        levels = p[-2:]                                         # leaf + parent only (D17)
+        weights = np.array([0.3, 0.7]) if len(levels) == 2 else np.array([1.0])  # parent 0.3, leaf 0.7; a root is its own name
+        category_vector = weights @ vecs[[index[name] for name in levels]]  # only leaf + parent
         out.append(category_vector / (np.linalg.norm(category_vector) + 1e-12))  # unit length, whatever the path depth
 
     return np.stack(out).astype(np.float32)
@@ -145,6 +139,7 @@ def cluster_embeddings(
 
     # k-means++ seeding plus 20 restarts: with ~1,300 points this is cheap and removes most of the
     # dependence on the random start; random_state makes the clusters reproducible.
+    # runs k means 20 times and keep one with lowest intertia
     kmeans = KMeans(
         n_clusters=k,
         init="k-means++",
@@ -170,14 +165,24 @@ def main():
     parser.add_argument("--unweighted", action="store_true")  # default: level-weighted mean
 
     args = parser.parse_args()
-
+    out_path = Path("data/category_embeddings.npy")
+    # print(f"{out_path} alreaydy exists, skipping")
+     
     embeddings = build_category_embeddings(load_category_taxonomy(), args.model, weighted=not args.unweighted)
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     embeddings.to_parquet(out_path, index=False)
     print(f"saved {len(embeddings)} embeddings "
-          f"(dim {len(embeddings['embedding'].iloc[0])}) to {out_path}")
+        f"(dim {len(embeddings['embedding'].iloc[0])}) to {out_path}")
 
+    clustered = cluster_embeddings(embeddings, k=50)
+    clustered.drop(columns="embedding").to_parquet(PROCESSED_DIR / "category_clusters_K50.parquet", index=False)
+
+    # readable listing: one block per cluster
+    with open(BASE_PATH / "reports" / "clusters_K50.txt", "w", encoding="utf-8") as listing_file:
+        for cluster_id, members in clustered.groupby("cluster"):
+            listing_file.write(f"cluster {cluster_id} ({len(members)} categories): "
+                            + "; ".join(members["category_name"]) + "\n\n")
 
 if __name__ == "__main__":
     main()
