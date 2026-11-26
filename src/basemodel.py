@@ -3,9 +3,14 @@
 xz331@cam.ac.uk
 abnerzxzhao@tencent.com
 """
+# Shared helpers of the TEMN model: parameter initialiser and optimiser chosen by name in `args`.
+# (TEMN.py sets its optimiser again itself, so _set_opt is effectively overwritten.)
+
+# [CHANGED C1] upstream: `import tensorflow as tf` (TF 1.12); TF1 API on TF 2.x via the compat module
 import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior()
 
+# [CHANGED C2] new helper (not in upstream).
 # tf.contrib was removed in TF 2.x. These reproduce the TF 1.x contrib
 # initializers exactly: contrib's truncated normal used stddev = sqrt(1.3*factor/n),
 # while variance_scaling_initializer uses sqrt(scale/n)/0.87962566103423978,
@@ -31,6 +36,9 @@ class basemodel(object):
             return tf.random_uniform_initializer(-self.args.stddev, self.args.stddev)
         elif self.args.init_method == 'normal':
             return tf.random_normal_initializer(stddev=self.args.stddev)
+        # [CHANGED C2] the four branches below used tf.contrib.layers.xavier_initializer /
+        # variance_scaling_initializer upstream; same distributions, rebuilt without tf.contrib.
+        # (Our runs use init_method = "uniform", so these branches are not used.)
         elif self.args.init_method == 'xavier_normal':
             return _contrib_variance_scaling(1.0, 'fan_avg', uniform=False)
         elif self.args.init_method == 'xavier_uniform':
@@ -44,6 +52,7 @@ class basemodel(object):
 
     def _set_opt(self):
         if self.args.opt == 'SGD':
+            # [CHANGED C1] upstream: tf.compat.v1.train.GradientDescentOptimizer (same class; tf is compat.v1 here)
             self.opt = tf.train.GradientDescentOptimizer(learning_rate=self.learn_rate)
         elif self.args.opt == 'Adam':
             self.opt = tf.train.AdamOptimizer(learning_rate=self.learn_rate)

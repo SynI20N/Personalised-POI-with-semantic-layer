@@ -3,16 +3,23 @@
 xz331@cam.ac.uk
 abnerzxzhao@tencent.com
 '''
+# Random toy data in the authors' file format, only to check that the code runs (not used for results).
+# Real data: src/preprocess.ipynb writes data/processed/<city>/data_<city>_val|test and poi2_xy.
+# Each item is [poi_id, time_slot, neg_id]; the neg_id column and the 4th column (neg_data) were the
+# authors' FIXED negatives, which TEMN no longer reads (see [CHANGED C10]/[CHANGED C11] in process_TEMN_data.py).
 
 import json
 import random
 from pathlib import Path
 
+# [CHANGED C4] new: write next to this file, not into the working directory
 # Project root (the folder that contains "src"), independent of the current working directory
 BASE_PATH = Path(__file__).resolve().parent.parent
 SRC_PATH = BASE_PATH / "src"
 
 doc_num = 5000
+# [CHANGED C16] upstream: word_num = 10. With 10 POIs a user has visited all of them, so the new
+# sampler (which only draws unvisited POIs) would find no negative.
 word_num = 200  # must exceed what users visit (~0-40), otherwise no valid negatives exist
 time_num = 7
 train_k = 100

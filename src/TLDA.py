@@ -8,6 +8,20 @@ the demo of TLDA
 input_data = [(doc_idx1,poi_idx1,time_idx1),(doc_idx2,poi_idx2,time_idx2),....]
 Gibson sampling
 '''
+# Temporal LDA (paper 4.3), collapsed Gibbs sampling. No functional change from the authors' code.
+#
+# Each check-in token (user i, POI j, time slot l) has a topic. Its topic is resampled with
+#   P(topic k) ~ (n_kj + beta)/(n_k + V beta) * (n_ik + alpha)/(len_i + K alpha) * (n_lk + gamma)/(n_l + K gamma)
+#                 POI given topic                 topic given user                  topic given time slot
+# where the n are the counts below with the token itself removed (Sample_topic).
+# Counts: document_topic [users x K], time_topic [slots x K], topic_word [K x POIs], nwsum [K].
+# Saved (save_model_data): theta = user topic mixtures (TEMN's topic labels), phi = topic -> POI,
+# vt = time slot -> topic.
+#
+# Semantic TEMN, change 2: the "word" j becomes a k-means cluster id instead of a POI id; only the
+# input built in main_tlda.py changes, this file does not.
+# [NOTE] train_model runs a fixed number of sweeps and does not report a likelihood, so convergence is
+# not checked yet.
 import numpy as np
 import random
 import pickle
@@ -136,6 +150,7 @@ class tlda:
 
 
 if __name__ == '__main__':
+    # [NOTE N4] broken in the authors' code (TLDA, input_data, ... are undefined here): run main_tlda.py instead.
     # program process
     tlda = TLDA(input_data, doc_index, doc_len, doc_num, poi_num, time_num, topic_k, iter);
     tlda.train_model()

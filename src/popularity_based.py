@@ -56,9 +56,9 @@ def hit_and_ndcg(ranks, k):
 
 def main():
     parser = argparse.ArgumentParser(description="Global popularity baseline on TEMN's test groups")
-    parser.add_argument("--data_dir", default=str(BASE_PATH / "data/processed"))
+    parser.add_argument("--data_dir", default=str(BASE_PATH / "data/processed/tky"))
     parser.add_argument("--data_file", default="data_nyc_val")
-    parser.add_argument("--seed", type=int, default=2026)  # must equal TEMN's seed: same negatives
+    parser.add_argument("--seed", type=int, default=42)  # must equal TEMN's seed: same negatives
     args = parser.parse_args()
     data_dir = Path(args.data_dir)
 

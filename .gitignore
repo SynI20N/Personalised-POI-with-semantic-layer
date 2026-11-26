@@ -220,3 +220,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# best weights saved by early stopping (main_TEMN.py)
+results/checkpoints/
+
+#
+results/runs.jsonl 
+results/ranks_*.txt
+
