@@ -184,5 +184,34 @@ def main():
             listing_file.write(f"cluster {cluster_id} ({len(members)} categories): "
                             + "; ".join(members["category_name"]) + "\n\n")
 
+    # per-POI tables for the model (rows of `clustered` are in the same order as `embeddings`)
+    build_poi_tables(clustered, np.vstack(embeddings["embedding"].to_numpy()), PROCESSED_DIR / "nyc")
+
+
+def build_poi_tables(clustered, matrix, city_dir):
+    """Per-POI model inputs, row = poi_id (the model looks POIs up by id, not by category)."""
+    poi_map = pd.read_csv(city_dir / "poi_map.csv")
+    # D19: the old "Ferry" id is not in the taxonomy; it is the same place type as "Boat or Ferry"
+    poi_map["categoryId"] = poi_map["categoryId"].replace({"4e51a0c0bd41d3446defbb2e": "4bf58dd8d48988d12d951735"})
+    category_row = poi_map["categoryId"].map({c: i for i, c in enumerate(clustered["category_id"])})
+    print(f"POIs: {len(poi_map)}, without a category: {category_row.isna().sum()}")
+    assert category_row.notna().all()
+    poi_ids, category_row = poi_map["poi_id"].to_numpy(), category_row.to_numpy(dtype=int)
+    n_rows = poi_ids.max() + 2  # = the model's num_items + 1 once every POI is in poi2_xy (M2)
+
+    poi_semantic = np.zeros((n_rows, matrix.shape[1]), dtype=np.float32)
+    poi_semantic[poi_ids] = matrix[category_row]
+
+    city_categories = sorted(poi_map["categoryId"].unique())  # one fixed, sorted column order
+    poi_onehot = np.zeros((n_rows, len(city_categories)), dtype=np.float32)
+    poi_onehot[poi_ids, poi_map["categoryId"].map({c: j for j, c in enumerate(city_categories)})] = 1.0
+
+    poi_cluster = np.zeros(n_rows, dtype=np.int64)
+    poi_cluster[poi_ids] = clustered["cluster"].to_numpy()[category_row]
+
+    for name, table in [("poi_semantic", poi_semantic), ("poi_onehot", poi_onehot), ("poi_cluster_K50", poi_cluster)]:
+        np.save(city_dir / f"{name}.npy", table)
+        print(f"saved {name}.npy {table.shape}")
+        
 if __name__ == "__main__":
     main()

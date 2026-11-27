@@ -53,17 +53,26 @@ parser.add_argument("--neg_alpha", type=float, default=0.5) # 0.5 best NYC val r
 # to every model you compare (popularity_based.py has the same default), or they are not paired.
 parser.add_argument("--seed", type=int, default=42)
 parser.add_argument("--distance", default="log1p", choices=["log1p", "km"])  # [CHANGED C7]
+
+# [CHANGED C23/C24] Semantic TEMN inputs; the defaults give base TEMN. (mu is --id_drop, in `class args`.)
+parser.add_argument("--sem_file", type=str, default=None)               # in data_dir: poi_semantic.npy (encoder) or poi_onehot.npy (one-hot)
+parser.add_argument("--tlda_file", type=str, default='tlda_model_file')  # tlda_model_file_semantic_K50 = TLDA on clusters
+
+
+
 cli, hyperparameter_overrides = parser.parse_known_args()  # the rest is checked after `class args`
 random.seed(cli.seed)          # order of the training examples
 tf.set_random_seed(cli.seed)   # parameter initialisation
 DATA_DIR = Path(cli.data_dir)
 process_TEMN_data.DISTANCE = cli.distance
 
+
+
 # [CHANGED C10] upstream: process_fun("sample_data") returned 5 values and the data were shuffled once
 # here (random.shuffle(all_data)); the training negatives were fixed inside the data. Now the 6th value
 # is the NegativeSampler, used once per epoch below.
 all_data, user_num, poi_num, topic_k, all_test_data, neg_sampler = process_TEMN_data.process_fun(
-    cli.data_file, data_dir=DATA_DIR, seed=cli.seed
+    cli.data_file, data_dir=DATA_DIR, seed=cli.seed, tlda_file= cli.tlda_file
 )
 
 neg_sampler.set_popularity_weights(cli.neg_alpha) # CHNAGED C22
@@ -112,7 +121,8 @@ class args:
     ratio2 = 0.1              # paper epsilon = 0.1 (same as upstream)
     init_method = "uniform"   # [CHANGED C14] upstream "normal"; paper: uniform initialisation
     eta = 0.4 # paper uses 0.4  / geographic module weight parameter   [CHANGED C5/C14] new: weight of s_geo in Eq. 19
-
+    id_drop = 0.0             # [CHANGED C23] mu: probability that a POI's ID vector is dropped in a training step (only with --sem_file)
+    scaling_sem = 0.1 # s * Wev scaling factor in ~q_v
 
 ar = args()
 
@@ -133,7 +143,12 @@ print("settings:", vars(cli), hyperparameters)
 user_num = num_users
 item_num = num_items
 
-model = TEMN.TEMN(user_num,item_num,ar)
+# [CHANGED C23] per-POI semantic table (row = poi_id): poi_semantic.npy or poi_onehot.npy; no --sem_file = base TEMN
+sem_table = None
+if cli.sem_file:
+    sem_table = np.load(DATA_DIR / cli.sem_file)
+    print(f"semantic table {cli.sem_file}: {sem_table.shape}")
+model = TEMN.TEMN(user_num, item_num, ar, sem_table)
 saver = tf.train.get_or_create_global_step()  # (upstream name; it is a step counter, not a Saver)
 init = tf.global_variables_initializer()
 # [CHANGED C17] keeps the weights of the best epoch. Created after the model, because a Saver only

@@ -7,8 +7,8 @@ abnerzxzhao@tencent.com
 # Document = one user; word = one check-in (POI id), with its time slot as the temporal context.
 # The output (tlda_model_file) gives the labels of TEMN's topic loss (Eq. 12-14).
 #
-# Semantic TEMN, change 2 (to do): replace the POI id by the POI's k-means cluster id when building
-# cur_item below, so topics become mixtures of KINDS of places that exist in every city.
+# Semantic TEMN, change 2: with --word_map the POI id is replaced by the POI's k-means cluster id when
+# building cur_item below, so topics become mixtures of KINDS of places that exist in every city.
 #
 # [CHANGED C4] upstream: fixed input "sample_data" and output "tlda_model_file", no options.
 
@@ -38,6 +38,13 @@ parser.add_argument("--topics", type=int, default=10)       # paper: 10 (tuned a
 # [CHANGED C15] upstream: 10 sweeps, hard-coded in the tlda(...) call. No convergence check exists yet.
 parser.add_argument("--iterations", type=int, default=10)   # Gibbs sweeps; set after a convergence run
 parser.add_argument("--seed", type=int, default=2026)       # [CHANGED C15] new: TLDA was unseeded
+# [CHANGED C24] Semantic TEMN, change 2: with a POI -> cluster table (e.g. poi_cluster_K50.npy, row = poi_id),
+# each check-in's word is its POI's cluster, so topics become mixtures of KINDS of places.
+parser.add_argument("--word_map", default=None)
+
+
+
+
 cli = parser.parse_args()
 random.seed(cli.seed)      # TLDA samples with Python's random module
 np.random.seed(cli.seed)
@@ -53,6 +60,7 @@ input_data = []
 doc_index = []
 doc_len = []
 
+word_of_poi = np.load(cli.word_map) if cli.word_map else None  # [CHANGED C24] poi_id -> cluster id
 f_i = open(cli.data)
 readlines = f_i.readlines()
 f_i.close()
@@ -66,13 +74,13 @@ for line in readlines:
     
     cur_data = []
     for item in json_data:  # item = [poi_id, time_slot, 0]; repeats kept, TLDA counts every check-in
-        cur_poi_index = item[0]
+        cur_poi_index = item[0] if word_of_poi is None else int(word_of_poi[item[0]])  # [CHANGED C24]
         cur_time_index = item[1]
         if cur_poi_index > poi_num:
             poi_num = cur_poi_index
         if cur_time_index > time_num:
             time_num = cur_time_index
-        cur_item = (ii,item[0],item[1])
+        cur_item = (ii, cur_poi_index, item[1])  # [CHANGED C24] upstream: (ii, item[0], item[1])
         cur_data.append(cur_item)
     doc_len.append(len(cur_data))
     doc_index.append(ii)

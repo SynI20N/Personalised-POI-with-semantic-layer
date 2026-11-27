@@ -163,7 +163,7 @@ class NegativeSampler:
 
 
 # [CHANGED C4/C10/C11] upstream signature: process_fun(file_name), returning 5 values (no sampler)
-def process_fun(file_name, data_dir=DATA_DIR, num_test_neg=100, seed=2026):
+def process_fun(file_name, data_dir=DATA_DIR, num_test_neg=100, seed=2026,tlda_file = 'tlda_model_file'):
     """
     Returns
       train:   list of (u, i, dist, history, topic); negatives are added per epoch
@@ -180,7 +180,7 @@ def process_fun(file_name, data_dir=DATA_DIR, num_test_neg=100, seed=2026):
     # different test groups: compare two models only on runs with the SAME --seed.
     test_rng = np.random.default_rng(seed + 1)  # separate stream: test negatives stay fixed
 
-    with open(data_dir / "tlda_model_file", "rb") as f_model:
+    with open(data_dir / tlda_file, "rb") as f_model:
         # [NOTE] TLDA.save_model_data writes [theta, phi, vt] = (user-topic, topic-POI, time-topic),
         # so the last two names below are swapped. Harmless: only document_topic (theta) is used.
         document_topic, time_topic, topic_word = pickle.load(f_model)

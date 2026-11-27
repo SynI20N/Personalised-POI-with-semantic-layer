@@ -39,7 +39,7 @@ class TEMN(basemodel):
     @ratio2:the influence of dis_model
     """
 
-    def __init__(self, num_users, num_items, args):
+    def __init__(self, num_users, num_items, args, sem_table=None):
         print('creating my TEMN!')
         self.num_users = num_users
         self.num_items = num_items
@@ -54,6 +54,7 @@ class TEMN(basemodel):
         self.attention = None
         self.selected_memory = None
         self.num_mem = self.args.num_mem
+        self.sem_table = sem_table
 
         self.initializer = self._get_initializer()
         self._set_opt()
@@ -103,6 +104,9 @@ class TEMN(basemodel):
                 # (Do not confuse it with the q_v dropout p of Semantic TEMN, which is still to be added.)
                 self.dropout: self.args.dropout
             }
+            # [CHANGED C23] ID dropout mu, fed in training only; test keeps the default 0 (no dropout)
+            if self.sem_table is not None:
+                feed_dict[self.id_drop] = self.args.id_drop
         else:
             # test mode: no negative, no topics. Every candidate of a group goes through item_input.
             user_input = [x[0] for x in batch]
@@ -181,9 +185,26 @@ class TEMN(basemodel):
                 # This is the table Semantic TEMN changes to  q~_v = m_v * q_v + W e_v  (proposal Eq. 2).
                 self.item_embeddings = tf.get_variable('item_emb', [self.num_items + 1, self.args.embedding_size],
                                                        initializer=self.initializer)
-                self.all_items_emb = tf.nn.embedding_lookup(self.item_embeddings, self.all_items)  # history [B, P, d]
-                self.item_emb = tf.nn.embedding_lookup(self.item_embeddings, self.item_input)      # positive / candidate [B, d]
-                self.item_emb_neg = tf.nn.embedding_lookup(self.item_embeddings, self.item_input_neg)  # negative [B, d]
+                # [CHANGED C23] Semantic TEMN (proposal Eq. 2): q~_v = m_v * q_v + W e_v for every POI row.
+                # Without a semantic table no op is added, so the graph is exactly base TEMN.
+                poi_vectors = self.item_embeddings
+                if self.sem_table is not None:
+                    # e_v per POI (frozen), row = poi_id; keep the model's num_items + 1 rows
+                    sem_table = tf.constant(self.sem_table[:self.num_items + 1], dtype=tf.float32)
+                    # W maps e_v (384 encoder / one column per category for one-hot) to the 50-d POI space
+                    self.W_sem = tf.get_variable('W_sem', [self.sem_table.shape[1], self.args.embedding_size],
+                                                 initializer=self.initializer)
+                    # m_v: in training each POI's q_v is dropped with probability mu (redrawn every step),
+                    # so the model also learns to rank from W e_v alone, as for a cold POI. Default 0 = test.
+                    self.id_drop = tf.placeholder_with_default(0.0, shape=[], name='id_drop')
+                    id_keep = tf.cast(tf.random_uniform([self.num_items + 1, 1]) >= self.id_drop, tf.float32)
+                   # ** We rescale the meaning vector to to scaling factor s, previous runs made Wev dominate the loss and W parameters grew too large dominating also q_v
+                    # We additonaly do l2 normalisation to Wev ev, sicnce simple 0.1 didnt prevent the weights from expoding in later epochs.
+                    poi_vectors = id_keep * self.item_embeddings + self.args.scaling_sem * tf.nn.l2_normalize(tf.matmul(sem_table, self.W_sem), axis=1)                
+                self.all_items_emb = tf.nn.embedding_lookup(poi_vectors, self.all_items)      # history [B, P, d]
+                self.item_emb = tf.nn.embedding_lookup(poi_vectors, self.item_input)          # positive / candidate [B, d]
+                self.item_emb_neg = tf.nn.embedding_lookup(poi_vectors, self.item_input_neg)  # negative [B, d]
+                
                 # ---- Geography parameters (paper 4.5), one scalar each:
                 #      rho_u = dis_W[u], b_u = dis_b[u], rho_v = dis_W_item[v]  (all tied to ids)
                 self.dis_W = tf.get_variable("W", [self.num_users + 1, 1], initializer=self.initializer)
